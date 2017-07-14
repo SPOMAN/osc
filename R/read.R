@@ -13,7 +13,7 @@
 #' @export
 #' @examples
 #' raman_curvefit_read("data")
-#' raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'gRaphene'))
+#' raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'osc'))
 
 
 raman_curvefit_read <- function(path, ext = "txt") {
@@ -49,13 +49,19 @@ raman_curvefit_read <- function(path, ext = "txt") {
 #' Reads *.txt files from the CHI potentiostats. Automatically detects sweep- and cv-number, so these can later be used for colors in plots etc.
 #'
 #' @importFrom magrittr %>%
-#' @param path Path to the cv file (txt)
+#' @param path Path to the CV file (txt)
 #' @param skip Number of lines to skip (where does metadata end and the data start?)
+#' @param col_names A vector containing the names to be used for the two loaded columms (Default: c("pot","cur))
 #' @keywords cyclic voltammetry, electrochemistry
+#' @family cyclic voltammetry
 #' @export
 #' @examples
-#' file1 <- "C:/Users/emilbp/PhD/Projects/High-Shear Exfoliation/Data/20150602 CV of benzophenone/CV2 2mM benzophenone.txt"
-#' df <- cv_read(file1, skip = 41)
+#' file <- system.file('extdata/cv/cv_example.txt', package = 'osc')
+#' df <- cv_read(file, skip = 41)
+#'
+#' file <- system.file('extdata/cv/5cv_example.txt', package = 'osc')
+#' df <- cv_read(file, skip = 70)
+#' plot(df)
 
 
 cv_read <- function(file, skip, col_names = c("pot", "cur"), ...) {

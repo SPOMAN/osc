@@ -6,12 +6,17 @@
 \usage{
 \method{plot}{raman_curvefit}(df, ..., col_name)
 }
+\arguments{
+\item{df}{A curvefit dataframe from \code{raman_curvefit_read()}}
+
+\item{col_name}{The name of the column to plot}
+}
 \description{
-Plot results of graphene curve fit
+Plots a Raman map, if given a raman curvefit from \code{\link{raman_curvefit_read}} and a column.
 }
 \examples{
-raman_curvefit_read("data")
-raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'gRaphene'))
+df <- raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'gRaphene'))
+plot(df, col_name = `D int`)
 }
 \seealso{
 Other curve fit functions: \code{\link{raman_curvefit_read}}

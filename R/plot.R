@@ -1,14 +1,17 @@
 #' Plot results of graphene curve fit
 #'
+#' Plots a Raman map, if given a raman curvefit from \code{\link{raman_curvefit_read}} and a column.
+#'
 #' @importFrom magrittr %>%
 #' @importFrom rlang !!
+#' @param df A curvefit dataframe from \code{raman_curvefit_read()}
+#' @param col_name The name of the column to plot
 #' @keywords raman, curve fit
 #' @family curve fit functions
 #' @export
 #' @examples
-#' raman_curvefit_read("data")
-#' raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'gRaphene'))
-
+#' df <- raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'gRaphene'))
+#' plot(df, col_name = `D int`)
 
 plot.raman_curvefit <- function(df, ..., col_name) {
   col_name <- dplyr::enquo(col_name)
@@ -21,13 +24,30 @@ plot.raman_curvefit <- function(df, ..., col_name) {
 
 #' Plot cyclic voltammograms
 #'
+#' Produces a CV-plot based on a dataframe from \code{\link{cv_read}}.
+#' If there is more than one CV in the file, each will be plotted in a different color.
+#'
 #' @importFrom magrittr %>%
+#' @param df A CV loaded with \code{cv_read()}
+#' @family cyclic voltammetry
 #' @export
+#' @examples
+#' file <- system.file('extdata/cv/5cv_example.txt', package = 'osc')
+#' df <- cv_read(file, skip = 70)
+#' plot(df)
 
 plot.cv <- function(df) {
-  df %>%
-    ggplot2::ggplot(ggplot2::aes(x = pot, y = cur, color = cv)) +
-    ggplot2::geom_path() +
-    labs(x = "Potential (V)", y = "Current (A)")
+  if(length(unique(df$cv)) > 1) {
+    df %>%
+      ggplot2::ggplot(ggplot2::aes(x = pot, y = cur, color = as.factor(cv))) +
+      ggplot2::geom_path() +
+      ggplot2::labs(x = "Potential (V)", y = "Current (A)")
+  } else {
+    df %>%
+      ggplot2::ggplot(ggplot2::aes(x = pot, y = cur)) +
+      ggplot2::geom_path() +
+      ggplot2::labs(x = "Potential (V)", y = "Current (A)")
+
+  }
 }
 

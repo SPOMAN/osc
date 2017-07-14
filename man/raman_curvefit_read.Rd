@@ -20,7 +20,7 @@ The dataframe that is returned will contain the "<peak> <feature>" as the column
 }
 \examples{
 raman_curvefit_read("data")
-raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'gRaphene'))
+raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'osc'))
 }
 \seealso{
 Other curve fit functions: \code{\link{plot.raman_curvefit}}

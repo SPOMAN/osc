@@ -6,6 +6,18 @@
 \usage{
 \method{plot}{cv}(df)
 }
+\arguments{
+\item{df}{A CV loaded with \code{cv_read()}}
+}
 \description{
-Plot cyclic voltammograms
+Produces a CV-plot based on a dataframe from \code{\link{cv_read}}.
+If there is more than one CV in the file, each will be plotted in a different color.
+}
+\examples{
+file <- system.file('extdata/cv/5cv_example.txt', package = 'osc')
+df <- cv_read(file, skip = 70)
+plot(df)
+}
+\seealso{
+Other cyclic voltammetry: \code{\link{cv_read}}
 }
