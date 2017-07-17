@@ -18,6 +18,3 @@ file <- system.file('extdata/cv/5cv_example.txt', package = 'osc')
 df <- cv_read(file, skip = 70)
 plot(df)
 }
-\seealso{
-Other cyclic voltammetry: \code{\link{cv_read}}
-}

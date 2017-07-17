@@ -43,6 +43,35 @@ raman_curvefit_read <- function(path, ext = "txt") {
   data
 }
 
+#' Read electrochemistry data
+#'
+#' Reads *.txt files from the CHI potentiostats.
+#' Current supports Cyclic Voltammetry and Bulk Electrolysis with Coulometry
+#'
+#' @param file Path to the *.txt file from the CHI potentiostat
+#' @family electrochemistry
+#' @export
+#' @examples
+#' file <- system.file('extdata/cv/cv_example.txt', package = 'osc')
+#' data <- read_elec(elec)
+#' plot(data)
+#'
+#' file <- system.file('extdata/cv/Electrolysis.txt', package = 'osc')
+#' data <- read_elec(file)
+#' plot(data)
+#'
+
+electrochemistry_read <- function(file) {
+  type <- get_exp_type(file)
+  if (type == "Bulk Electrolysis with Coulometry") {
+    data <- electrolysis_read(file, skip = find_data(file))
+  } else if (type == "Cyclic Voltammetry") {
+    data <- cv_read(file, skip = find_data(file))
+  } else {
+    return("Unknown experiment type")
+  }
+  return(data)
+}
 
 #' Load cyclic voltammogram
 #'
@@ -51,9 +80,9 @@ raman_curvefit_read <- function(path, ext = "txt") {
 #' @importFrom magrittr %>%
 #' @param path Path to the CV file (txt)
 #' @param skip Number of lines to skip (where does metadata end and the data start?)
-#' @param col_names A vector containing the names to be used for the two loaded columms (Default: c("pot","cur))
+#' @param col_names A vector containing the names to be used for the two loaded columms (Default: c("potential", "current"))
 #' @keywords cyclic voltammetry, electrochemistry
-#' @family cyclic voltammetry
+#' @family cyclic voltammetry, electrochemistry
 #' @export
 #' @examples
 #' file <- system.file('extdata/cv/cv_example.txt', package = 'osc')
@@ -63,15 +92,74 @@ raman_curvefit_read <- function(path, ext = "txt") {
 #' df <- cv_read(file, skip = 70)
 #' plot(df)
 
-
-cv_read <- function(file, skip, col_names = c("pot", "cur"), ...) {
-  data <- readr::read_csv(file, skip = skip, col_names = col_names, ...) %>%
-    dplyr::mutate(direc = ifelse(lead(pot)-pot > 0, "pos", "neg")) %>%
+cv_read <- function(file, skip, col_names = c("potential", "current")) {
+  data <- readr::read_csv(file, skip = skip, col_names = col_names) %>%
+    dplyr::mutate(direc = ifelse(lead(potential)-potential > 0, "pos", "neg")) %>%
     dplyr::mutate(change = ifelse(direc != lag(direc), 1, 0)) %>%
     dplyr::mutate(change = ifelse(is.na(change), 0, change)) %>%
     dplyr::mutate(sweep = cumsum(change) + 1) %>%
     dplyr::mutate(cv = ceiling(sweep/2))
 
-  class(data) <- c("cv", class(data))
-  data
+  header <- readr::read_lines(file, n_max = skip-1)
+  v <- header[stringr::str_detect(header, pattern = "^(Scan Rate)") == TRUE] %>%
+    stringr::str_extract(pattern = "-?(\\d)+.(\\d)+$") %>%
+    as.numeric()
+
+  structure(list(data = data, v = v), class = "cv")
+}
+
+#' Load electrolysis
+#' Reads *.txt files from the CHI potentiostats containing electrolysis data.
+#'
+#' @importFrom magrittr %>%
+#' @param path Path to the CV file (txt)
+#' @param skip Number of lines to skip (where does metadata end and the data start?)
+#' @param col_names A vector containing the names to be used for the two loaded columms (Default: c('time', 'charge', 'current'))
+#' @keywords cyclic voltammetry, electrochemistry
+#' @family cyclic voltammetry, electrochemistry
+#' @export
+#' @examples
+#' file <- system.file('extdata/cv/cv_example.txt', package = 'osc')
+#' df <- cv_read(file, skip = 41)
+#'
+#' file <- system.file('extdata/cv/5cv_example.txt', package = 'osc')
+#' df <- cv_read(file, skip = 70)
+#' plot(df)
+
+electrolysis_read <- function(file, skip, col_names = c('time', 'charge', 'current')) {
+  data <- readr::read_csv(file, skip = skip, col_names = col_names)
+
+  header <- readr::read_lines(file, n_max = skip-1)
+  E <- header[stringr::str_detect(header, pattern = "^(Init E)") == TRUE] %>%
+    stringr::str_extract(pattern = "-?(\\d)+.(\\d)+$") %>%
+    as.numeric()
+
+  structure(list(data = data, E = E), class = "electrolysis")
+}
+
+#' Return electrochemical experiment type
+#'
+#' @param file Path to data file from an electrochemical experiment
+
+get_exp_type <- function(file) {
+  readr::read_lines(file, n_max = 2)[2]
+}
+
+#' Find the data startposition
+#'
+#' Finds the starting point of the data table in data files from electrochemical experiments
+#' \code{n_init} is recursively doubled until the starting point is found.
+#'
+#' @param file Path to data file from an electrochemical experiment
+#' @param n_init Initial number of lines to load (the starting point varies from file to file)
+
+find_data <- function(file, n_init = 25) {
+  if (n_init > 1000) stop("Start of data not found in the first 1000 lines")
+  data_header <- readr::read_lines(file, n_max = n_init) %>%
+    stringr::str_detect("(^Time)|(^Potential)") # Time is the first column of coloumetry-data, Potential is the first of CVs
+  if(!any(data_header)) {
+    return(find_data(file, n_init = n_init * 2))
+  } else {
+    return(which(data_header == TRUE))
+  }
 }

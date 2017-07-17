@@ -37,17 +37,34 @@ plot.raman_curvefit <- function(df, ..., col_name) {
 #' plot(df)
 
 plot.cv <- function(df) {
-  if(length(unique(df$cv)) > 1) {
-    df %>%
-      ggplot2::ggplot(ggplot2::aes(x = pot, y = cur, color = as.factor(cv))) +
+  if(length(unique(df$data$cv)) > 1) {
+    df$data %>%
+      ggplot2::ggplot(ggplot2::aes(x = potential, y = current, color = (cv))) +
       ggplot2::geom_path() +
       ggplot2::labs(x = "Potential (V)", y = "Current (A)")
   } else {
-    df %>%
-      ggplot2::ggplot(ggplot2::aes(x = pot, y = cur)) +
+    df$data %>%
+      ggplot2::ggplot(ggplot2::aes(x = potential, y = current)) +
       ggplot2::geom_path() +
       ggplot2::labs(x = "Potential (V)", y = "Current (A)")
 
   }
+}
+
+#' Plot electrolysis
+#'
+#' Produces an electrolysis based on a dataframe from \code{\link{electrolysis_read}}.
+#'
+#' @importFrom magrittr %>%
+#' @param df An electrolysis loaded with \code{electrolysis_read()}
+#' @family electrolysis, electrochemistry
+#' @export
+#'
+
+plot.electrolysis <- function(df) {
+  df$data %>%
+    ggplot2::ggplot(ggplot2::aes(x = time, y = current)) +
+    ggplot2::geom_line() +
+    ggplot2::labs(title = paste("Electrolysis at ", df$E, " V"), x = "Time (s)", y = "Current (A)")
 }
 
