@@ -39,7 +39,7 @@ plot.raman_curvefit <- function(df, ..., col_name) {
 plot.cv <- function(df) {
   if(length(unique(df$data$cv)) > 1) {
     df$data %>%
-      ggplot2::ggplot(ggplot2::aes(x = potential, y = current, color = (cv))) +
+      ggplot2::ggplot(ggplot2::aes(x = potential, y = current, color = as.factor(cv))) +
       ggplot2::geom_path() +
       ggplot2::labs(x = "Potential (V)", y = "Current (A)")
   } else {

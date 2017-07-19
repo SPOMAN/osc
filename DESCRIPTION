@@ -14,4 +14,7 @@ Imports: dplyr,
     stringr,
     purrr,
     tibble,
-    readr
+    readr,
+    constants,
+    R.utils,
+    pracma

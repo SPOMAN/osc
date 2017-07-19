@@ -4,7 +4,7 @@
 \alias{print.electrolysis}
 \title{Print function for electrolysis}
 \usage{
-\method{print}{electrolysis}(df)
+\method{print}{electrolysis}(x)
 }
 \description{
 Print function for electrolysis

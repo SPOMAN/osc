@@ -4,7 +4,7 @@
 \alias{print.cv}
 \title{Print function for CV}
 \usage{
-\method{print}{cv}(df)
+\method{print}{cv}(x)
 }
 \description{
 Print function for CV

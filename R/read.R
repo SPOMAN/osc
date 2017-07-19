@@ -61,7 +61,7 @@ raman_curvefit_read <- function(path, ext = "txt") {
 #' plot(data)
 #'
 
-electrochemistry_read <- function(file) {
+echem_read <- function(file) {
   type <- get_exp_type(file)
   if (type == "Bulk Electrolysis with Coulometry") {
     data <- electrolysis_read(file, skip = find_data(file))
@@ -102,10 +102,41 @@ cv_read <- function(file, skip, col_names = c("potential", "current")) {
 
   header <- readr::read_lines(file, n_max = skip-1)
   v <- header[stringr::str_detect(header, pattern = "^(Scan Rate)") == TRUE] %>%
-    stringr::str_extract(pattern = "-?(\\d)+.(\\d)+$") %>%
+    stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
+    as.numeric()
+  init_E <- header[stringr::str_detect(header, pattern = "^(Init E)") == TRUE] %>%
+    stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
+    as.numeric()
+  high_E <- header[stringr::str_detect(header, pattern = "^(High E)") == TRUE] %>%
+    stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
+    as.numeric()
+  low_E <- header[stringr::str_detect(header, pattern = "^(Low E)") == TRUE] %>%
+    stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
+    as.numeric()
+  init_P <- header[stringr::str_detect(header, pattern = "^(Init P/N)") == TRUE] %>%
+    stringr::str_extract(pattern = "(P|N)$")
+  seg <- header[stringr::str_detect(header, pattern = "^(Segment =)") == TRUE] %>%
+    stringr::str_extract(pattern = "(\\d)+$") %>%
+    as.integer()
+  sens <- header[stringr::str_detect(header, pattern = "^(Sensitivity)") == TRUE] %>%
+    stringr::str_extract(pattern = "(\\d)+e-?(\\d)+$") %>%
+    as.numeric()
+  quiet <- header[stringr::str_detect(header, pattern = "^(Quiet Time)") == TRUE] %>%
+    stringr::str_extract(pattern = "(\\d)+$") %>%
     as.numeric()
 
-  structure(list(data = data, v = v), class = "cv")
+
+  structure(list(
+    data = data,
+    v = v,
+    init_E = init_E,
+    high_E = high_E,
+    low_E = low_E,
+    init_P = init_P,
+    seg = seg,
+    sens = sens,
+    quiet = quiet
+    ), class = "cv")
 }
 
 #' Load electrolysis
@@ -133,8 +164,10 @@ electrolysis_read <- function(file, skip, col_names = c('time', 'charge', 'curre
   E <- header[stringr::str_detect(header, pattern = "^(Init E)") == TRUE] %>%
     stringr::str_extract(pattern = "-?(\\d)+.(\\d)+$") %>%
     as.numeric()
+  d <- dplyr::last(data$time)
+  Q <- dplyr::last(data$charge)
 
-  structure(list(data = data, E = E), class = "electrolysis")
+  structure(list(data = data, E = E, d = d, Q = Q), class = "electrolysis")
 }
 
 #' Return electrochemical experiment type
@@ -154,7 +187,7 @@ get_exp_type <- function(file) {
 #' @param n_init Initial number of lines to load (the starting point varies from file to file)
 
 find_data <- function(file, n_init = 25) {
-  if (n_init > 1000) stop("Start of data not found in the first 1000 lines")
+  if (n_init > R.utils::countLines(file)) stop("Start of data not found anywhere in the file.")
   data_header <- readr::read_lines(file, n_max = n_init) %>%
     stringr::str_detect("(^Time)|(^Potential)") # Time is the first column of coloumetry-data, Potential is the first of CVs
   if(!any(data_header)) {

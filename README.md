@@ -5,8 +5,8 @@ This R package contains/will contain a set of useful tools for students and rese
 ## Electrochemistry
 
 ### Cyclic Voltammetry
-* Cyclic Voltammograms from the CHI can be loaded with `df <- cv_read("file.txt", skip = int)`
-* CVs can be plotted by `plot(df)`
+* Cyclic Voltammograms and Electrolysis from the CHI can be loaded with `df <- electrochemistry_read("file.txt")`
+* CVs and Electrolysis' can be plotted by `plot(df)`
 
 ## Raman Spectroscopy
 * Curve-fitted Raman maps from Wire can be loaded with `df <- raman_curvefit_read("path/to/folder/")`
