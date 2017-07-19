@@ -18,3 +18,7 @@ Imports: dplyr,
     constants,
     R.utils,
     pracma
+Suggests: testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

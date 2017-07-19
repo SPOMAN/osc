@@ -1,0 +1,78 @@
+---
+title: "osc: Electrochemistry tools"
+author: "Emil Tveden Bjerglund"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{osc: Electrochemistry tools}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The `osc` package contains tools for easily working with electrochemistry data from the CHI potentiostats. Data is loaded with `echem_read()`, which loads `.txt` files and automatically determines what to do based on the experimental technique used. 
+
+If the `osc` package is not installed on your computer, it can be installed from GitHub. This requires the `devtools` package.
+```{r eval=FALSE, include=TRUE}
+install.packages('devtools')
+devtools::install_github('SPOMAN/osc')
+```
+
+
+# Cyclic voltammetry
+
+```{r}
+library(osc)
+# The file variable should contain the path to your datafile
+file <- system.file('extdata/cv/cv_example.txt', package = 'osc')
+df <- echem_read(file)
+```
+At which point we can look at the loaded data and see details about our experiment. Notice the columns `sweep` and `cv`. When loading the number of CVs and sweeps in the file are automatically detected. This is useful for subsetting the data later on, or in case you want specific details in plots. 
+
+```{r}
+df
+```
+
+We can plot the data using the `plot()` function. Should the default plot not be satisfying, ordinary `ggplot2` layers can be added on top, or the data can be accessed in `df$data` and plotted manually.
+```{r fig.width = 7}
+plot(df)
+```
+
+## Integrating peaks
+Often we wish to integrate a peak, to now the amount of charge passed. This is done with the `area()` function by choosing the integration limits (`x1` and `x2`), and the sweep that contains the peak.
+```{r fig.width = 7}
+df <- area(df, sw = 1, x1 = -1.85, x2 = -1.4)
+plot_area(df)
+```
+
+A polynomial background is automatically fitted and subtracted before calculating the area.
+
+## Many CVs
+Sometimes a file contains more than one CV, and we want to be explicit about this.
+```{r  fig.width = 7}
+file <- system.file('extdata/cv/5cv_example.txt', package = 'osc')
+df <- echem_read(file)
+plot(df)
+```
+
+However, we could also plot it ourselves and use more functions to style it. 
+
+```{r fig.width = 7}
+library(tidyverse)
+
+df$data %>% 
+  ggplot(aes(potential, current, color = sweep)) +
+  ggthemes::theme_few() +
+  geom_path()
+```
+
+
+# Electrolysis
+Similarly we can load and plot electrolysis data.
+
+```{r fig.width = 7}
+file <- system.file('extdata/cv/Electrolysis.txt', package = 'osc')
+df <- echem_read(file)
+plot(df)
+```
+
+The electrochemical data is directly available from metadata, e.g. `df$Q` gives the total charge passed (here `r df$Q` C).
