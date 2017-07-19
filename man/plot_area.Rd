@@ -12,11 +12,14 @@ Plot fitted area
 \examples{
 file <- system.file("extdata/cv/cv_example.txt", package = "osc")
 df <- echem_read(file)
-df <- area(df, sw = 1, x1 = -1.4, x2 = -1.85)
-g1 <- plot_area(df)
-df$area$Q
-df <- area(df, sw = 2, x1 = -1.25, x2 = -1.65)
-g2 <- plot_area(df)
-df$area$Q
+
+df1 <- area(df, sw = 1, x1 = -1.85, x2 = -1.40)
+g1 <- plot_area(df1)
+df2 <- area(df, sw = 2, x1 = -1.65, x2 = -1.25)
+g2 <- plot_area(df2)
+
 gridExtra::grid.arrange(g1, g2, ncol = 1)
+}
+\seealso{
+Other area functions: \code{\link{area}}
 }

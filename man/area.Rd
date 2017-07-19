@@ -4,8 +4,25 @@
 \alias{area}
 \title{Fit a background and calculate the area between to points}
 \usage{
-area(df, sw, x1, x2, p = 3, span = 0.01)
+area(df, sw, x1, x2, p = 3, span = 0.05)
+}
+\arguments{
+\item{df}{Data from [echem_read()]}
+
+\item{sw}{The sweep number to be used}
+
+\item{x1}{Limit of integration (lower). Must be smaller than x2.}
+
+\item{x2}{Limit of integration (upper). Must be larger than x1.}
+
+\item{p}{Degree of polynomial used as background}
+
+\item{span}{Width of the window used for fitting at either end of the
+background polynomial. Defaults to 50 mV.}
 }
 \description{
 Fit a background and calculate the area between to points
+}
+\seealso{
+Other area functions: \code{\link{plot_area}}
 }
