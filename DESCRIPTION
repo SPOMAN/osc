@@ -20,5 +20,7 @@ Imports: dplyr,
     pracma
 Suggests: testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    shiny,
+    miniUI
 VignetteBuilder: knitr

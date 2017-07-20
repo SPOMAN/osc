@@ -57,12 +57,65 @@ plot_area <- function(df) {
     ggplot2::ggplot(ggplot2::aes(potential,current)) +
     ggplot2::geom_path() +
     #geom_point(aes(potential, peak), color = "red") +
-    ggplot2::geom_ribbon(data = df$area$data, ggplot2::aes(ymin = current, ymax = background), alpha = 0.1) +
+    ggplot2::geom_ribbon(data = df$area$data, ggplot2::aes(ymin = current, ymax = background, fill = (current - background < 0)), alpha = 0.5) +
     #geom_point(data = bg_data, aes(x,y), color = "blue") +
-    ggplot2::geom_line(data = df$area$data, ggplot2::aes(potential,background))
+    ggplot2::geom_line(data = df$area$data, ggplot2::aes(potential,background), color = "blue") +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::geom_line(data = df$area$data %>% dplyr::filter(dplyr::between(potential, df$area$x1 - df$area$span, df$area$x1 + df$area$span)), aes(potential, current), color = "red") +
+    ggplot2::geom_line(data = df$area$data %>% dplyr::filter(dplyr::between(potential, df$area$x2 - df$area$span, df$area$x2 + df$area$span)), aes(potential, current), color = "red")
   ann <- tibble::tribble(
     ~x, ~y, ~hjust, ~vjust, ~text,
     Inf, Inf, 1, 1, paste(prettyNum(df$area$Q, digits = 3, format = "fg"), "C")
   )
   g + ggplot2::geom_text(data = ann, ggplot2::aes(x, y, label = text, hjust = hjust, vjust = vjust), nudge_x = 0.5, nudge_y = -1)
+}
+
+
+
+#' area_picker
+#'
+#' @param df
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' df <- echem_read(system.file('extdata/cv/cv_example.txt', package = 'osc'))
+#' df <- area_picker(df)
+
+area_picker <- function(df) {
+  requireNamespace("shiny", quietly = TRUE)
+  requireNamespace("miniUI", quietly = TRUE)
+
+  ui <- miniUI::miniPage(
+    miniUI::gadgetTitleBar("Select integration limits by dragging sliders below"),
+    miniUI::miniContentPanel(
+      shiny::plotOutput("plot", height = "100%")
+    ),
+    miniUI::miniContentPanel(
+      shiny::fillRow(
+        shiny::sliderInput("x1", "Integration limits", min(df$data$potential), max(df$data$potential), c(min(df$data$potential), max(df$data$potential)), sep = "", post = "V", dragRange = TRUE, width = "100%", step = 0.01),
+        height = "50%"
+      ),
+      shiny::fillRow(
+        shiny::selectInput("sweep", "Sweep", unique(df$data$sweep), width = "90%"),
+        shiny::sliderInput("poly", "Background polynomial degree", 1, 5, 3, width = "90%", step = 1),
+        shiny::sliderInput("span", "Span of fitting endpoints", 0.01, 0.25, 0.05, post = "V", width = "90%"),
+        height = "50%")
+    )
+  )
+  server <- function(input, output, session) {
+    output$plot <- shiny::renderPlot({
+      a <- area(df, sw = input$sweep, x1 = input$x1[1], x2 = input$x1[2], p = input$poly, span = input$span)
+      plot_area(a)
+    })
+    shiny::observeEvent(input$done, {
+      a <- area(df, sw = input$sweep, x1 = input$x1[1], x2 = input$x1[2], p = input$poly, span = input$span)
+      cat(paste0("\nArea of ", prettyNum(a$area$Q, digits = 3, format = "fg"), " C found between ", a$area$x1 , " V and ", a$area$x2 , " V.\n"))
+      cat("Please paste the following into your script for reproducibility:\n")
+      cat(paste0("    df <- area(df, sw = ", input$sweep, ", x1 = ", input$x1[1], ", x2 = ", input$x1[2], ", p = ", input$poly, ", span = ", input$span, ")\n"))
+      shiny::stopApp(returnValue = )
+    })
+  }
+  shiny::runGadget(ui, server)
 }
