@@ -101,7 +101,7 @@ cv_read <- function(file, skip, col_names = c("potential", "current")) {
     dplyr::mutate(cv = ceiling(sweep/2))
 
   header <- readr::read_lines(file, n_max = skip-1)
-  v <- header[stringr::str_detect(header, pattern = "^(Scan Rate)") == TRUE] %>%
+  scanrate <- header[stringr::str_detect(header, pattern = "^(Scan Rate)") == TRUE] %>%
     stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
     as.numeric()
   init_E <- header[stringr::str_detect(header, pattern = "^(Init E)") == TRUE] %>%
@@ -125,10 +125,8 @@ cv_read <- function(file, skip, col_names = c("potential", "current")) {
     stringr::str_extract(pattern = "(\\d)+$") %>%
     as.numeric()
 
-
-  structure(list(
-    data = data,
-    v = v,
+  attr(data, "meta") <- list(
+    scanrate = scanrate,
     init_E = init_E,
     high_E = high_E,
     low_E = low_E,
@@ -136,7 +134,18 @@ cv_read <- function(file, skip, col_names = c("potential", "current")) {
     seg = seg,
     sens = sens,
     quiet = quiet
-    ), class = "cv")
+  )
+  class(data) <- append("cv", class(data))
+  data
+}
+
+#' Get metadata
+#'
+#' @export
+
+meta <- function(x, param) {
+  meta_list <- attr(df, 'meta')
+  meta_list[[param]]
 }
 
 #' Load electrolysis
@@ -167,7 +176,12 @@ electrolysis_read <- function(file, skip, col_names = c('time', 'charge', 'curre
   d <- dplyr::last(data$time)
   Q <- dplyr::last(data$charge)
 
-  structure(list(data = data, E = E, d = d, Q = Q), class = "electrolysis")
+  attr(data, "meta") <- list(
+    E = E,
+    d = d,
+    Q = Q)
+  class(data) <- append("electrolysis", class(data))
+  data
 }
 
 #' Return electrochemical experiment type

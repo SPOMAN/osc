@@ -37,13 +37,13 @@ plot.raman_curvefit <- function(df, ..., col_name) {
 #' plot(df)
 
 plot.cv <- function(df) {
-  if(length(unique(df$data$cv)) > 1) {
-    df$data %>%
+  if(length(unique(df$cv)) > 1) {
+    df %>%
       ggplot2::ggplot(ggplot2::aes(x = potential, y = current, color = as.factor(cv))) +
       ggplot2::geom_path() +
       ggplot2::labs(x = "Potential (V)", y = "Current (A)")
   } else {
-    df$data %>%
+    df %>%
       ggplot2::ggplot(ggplot2::aes(x = potential, y = current)) +
       ggplot2::geom_path() +
       ggplot2::labs(x = "Potential (V)", y = "Current (A)")
@@ -62,9 +62,9 @@ plot.cv <- function(df) {
 #'
 
 plot.electrolysis <- function(df) {
-  df$data %>%
+  df %>%
     ggplot2::ggplot(ggplot2::aes(x = time, y = current)) +
     ggplot2::geom_line() +
-    ggplot2::labs(title = paste("Electrolysis at ", df$E, " V"), x = "Time (s)", y = "Current (A)")
+    ggplot2::labs(title = paste("Electrolysis at ", meta(df, 'E'), " V"), x = "Time (s)", y = "Current (A)")
 }
 

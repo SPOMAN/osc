@@ -61,8 +61,8 @@ plot_area <- function(df) {
     #geom_point(data = bg_data, aes(x,y), color = "blue") +
     ggplot2::geom_line(data = df$area$data, ggplot2::aes(potential,background), color = "blue") +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::geom_line(data = df$area$data %>% dplyr::filter(dplyr::between(potential, df$area$x1 - df$area$span, df$area$x1 + df$area$span)), aes(potential, current), color = "red") +
-    ggplot2::geom_line(data = df$area$data %>% dplyr::filter(dplyr::between(potential, df$area$x2 - df$area$span, df$area$x2 + df$area$span)), aes(potential, current), color = "red")
+    ggplot2::geom_line(data = df$area$data %>% dplyr::filter(dplyr::between(potential, df$area$x1 - df$area$span, df$area$x1 + df$area$span)), ggplot2::aes(potential, current), color = "red") +
+    ggplot2::geom_line(data = df$area$data %>% dplyr::filter(dplyr::between(potential, df$area$x2 - df$area$span, df$area$x2 + df$area$span)), ggplot2::aes(potential, current), color = "red")
   ann <- tibble::tribble(
     ~x, ~y, ~hjust, ~vjust, ~text,
     Inf, Inf, 1, 1, paste(prettyNum(df$area$Q, digits = 3, format = "fg"), "C")
