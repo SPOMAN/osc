@@ -1,17 +1,16 @@
 # library(tidyverse)
 #
-# file <- system.file("extdata/cv/5cv_example.txt", package = "osc")
-# df <- echem_read(file)
-# g1 <- plot(df) +
-#   theme(legend.position = "none") +
-#   labs(title = paste0("Cyclic Voltammetry at ", meta(df, 'scanrate'), " V/s"))
+# file <- system.file("extdata/cv/cv_example.txt", package = "osc")
+# (df <- echem_read(file))
 #
+# area_picker(df)
 #
-# file <- system.file("extdata/cv/Electrolysis.txt", package = "osc")
-# df <- echem_read(file)
-# g2 <- plot(df)
+# df <- area(df, sw = 1, x1 = -1.85, x2 = -1.37, p = 3, span = 0.05)
 #
-# gridExtra::grid.arrange(g1, g2, ncol = 2)
+
+#d_new <- area(df, sw = 1, x1 = -2, x2 = -1)
+
+#plot_area(d_new)
 
 # #
 # # #--------

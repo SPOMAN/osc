@@ -65,6 +65,6 @@ plot.electrolysis <- function(df) {
   df %>%
     ggplot2::ggplot(ggplot2::aes(x = time, y = current)) +
     ggplot2::geom_line() +
-    ggplot2::labs(title = paste("Electrolysis at ", meta(df, 'E'), " V"), x = "Time (s)", y = "Current (A)")
+    ggplot2::labs(title = paste("Electrolysis at ", meta(df)$E, " V"), x = "Time (s)", y = "Current (A)")
 }
 

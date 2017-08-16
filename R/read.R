@@ -139,14 +139,6 @@ cv_read <- function(file, skip, col_names = c("potential", "current")) {
   data
 }
 
-#' Get metadata
-#'
-#' @export
-
-meta <- function(x, param) {
-  meta_list <- attr(df, 'meta')
-  meta_list[[param]]
-}
 
 #' Load electrolysis
 #' Reads *.txt files from the CHI potentiostats containing electrolysis data.
