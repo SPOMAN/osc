@@ -17,7 +17,8 @@ Imports: dplyr,
     readr,
     constants,
     R.utils,
-    pracma
+    pracma,
+    clipr
 Suggests: testthat,
     knitr,
     rmarkdown,

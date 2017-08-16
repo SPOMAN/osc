@@ -2,11 +2,12 @@
 #
 # file <- system.file("extdata/cv/cv_example.txt", package = "osc")
 # (df <- echem_read(file))
+# plot(df)
 #
-# area_picker(df)
+# df <- area_picker(df)
+# df <- area(df, sw = 2, x1 = -1.61, x2 = -1.25, p = 3, span = 0.05)
 #
-# df <- area(df, sw = 1, x1 = -1.85, x2 = -1.37, p = 3, span = 0.05)
-#
+# plot_area(df)
 
 #d_new <- area(df, sw = 1, x1 = -2, x2 = -1)
 

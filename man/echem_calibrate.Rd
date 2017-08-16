@@ -7,8 +7,15 @@
 echem_calibrate(df, source = "", output = "SCE")
 }
 \arguments{
-\item{output}{}
+\item{df}{Not implemented yet}
+
+\item{source}{Not implemented yet}
+
+\item{output}{Not implemented yet}
 }
 \description{
 Title
+}
+\examples{
+# Not implemented yet
 }

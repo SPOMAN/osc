@@ -76,7 +76,6 @@ plot_area <- function(df) {
 #'
 #' @param df
 #'
-#' @return
 #' @export
 #'
 #' @examples
@@ -113,9 +112,12 @@ area_picker <- function(df) {
       a <- area(df, sw = input$sweep, x1 = input$x1[1], x2 = input$x1[2], p = input$poly, span = input$span)
       area_params <- attr(a, "area")
       cat(paste0("\nArea of ", prettyNum(area_params$Q, digits = 3, format = "fg"), " C found between ", area_params$x1 , " V and ", area_params$x2 , " V.\n"))
-      cat("Please paste the following into your script for reproducibility:\n")
-      cat(paste0("    df <- area(df, sw = ", input$sweep, ", x1 = ", input$x1[1], ", x2 = ", input$x1[2], ", p = ", input$poly, ", span = ", input$span, ")\n"))
-      shiny::stopApp(returnValue = )
+      cat("The area() function below has been copied to the clipboard!\n")
+      cat("Please paste it in your script for reproducibility.\n")
+      res_string = paste0("df <- area(df, sw = ", input$sweep, ", x1 = ", input$x1[1], ", x2 = ", input$x1[2], ", p = ", input$poly, ", span = ", input$span, ")")
+      cat(paste0("    ", res_string, "\n"))
+      clipr::write_clip(res_string, return_new = FALSE)
+      shiny::stopApp(returnValue = invisible(a))
     })
   }
   shiny::runGadget(ui, server)
