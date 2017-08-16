@@ -5,13 +5,11 @@
 # plot(df)
 #
 # df <- area_picker(df)
-# df <- area(df, sw = 2, x1 = -1.61, x2 = -1.25, p = 3, span = 0.05)
+# df <- area(df, sw = 1, x1 = -1.83, x2 = -1.39, p = 3, span = 0.05)
 #
 # plot_area(df)
-
-#d_new <- area(df, sw = 1, x1 = -2, x2 = -1)
-
-#plot_area(d_new)
+#
+# coverage(df, diameter = 1)
 
 # #
 # # #--------

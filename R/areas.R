@@ -29,6 +29,7 @@ area <- function(df, sw, x1, x2, p = 3, span = 0.05) {
     dplyr::mutate(subt = d$current - d$background) %>%
     dplyr::summarise(pracma::trapz(potential, subt)) %>%
     as.numeric()
+  Q <- Q / meta(df)$scanrate
 
   attr(df, "area") <- list(data = d, sweep = sw, x1 = x1, x2 = x2, p = p, span = span, Q = Q)
   df
@@ -121,4 +122,25 @@ area_picker <- function(df) {
     })
   }
   shiny::runGadget(ui, server)
+}
+
+
+#' Calculate coverage based on peak integration
+#'
+#' @export
+#'
+#' @examples
+#' None yet
+coverage <- function(df, diameter = NULL, area = NULL, electrons = 1) {
+  # Q = nFA*(surface density)
+  if (is.null(diameter) && is.null(area)) stop("Electrode diameter (mm) or area (cm^2) must be supplied")
+
+  if (is.null(diameter)) {
+    surf_area <- area
+  } else {
+    diameter = diameter / 10
+    surf_area <- (pi * (diameter/2)^2)
+  }
+  Q = attr(df, "area")$Q
+  Q / (electrons * constants::syms$F * surf_area)
 }
