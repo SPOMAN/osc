@@ -1,3 +1,3 @@
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage("Loading osc...\nSee https://spoman.github.io/oscbook/ for examples")
+  packageStartupMessage("Loading osctools...\nSee https://spoman.github.io/oscbook/ for examples")
 }
