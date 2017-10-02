@@ -1,6 +1,6 @@
 Package: osctools
 Title: Tools for analysis of data often acquired in the Organic Surface Chemistry group
-Version: 0.1
+Version: 0.0.1
 Authors@R: person("Emil", "Tveden Bjerglund", email = "emilbp@inano.au.dk", role = c("aut", "cre"))
 Description: The osctools package contains tools for loading and working with data commonly obtained in the Organic Surface Chemistry group at Aarhus University, Denmark. These datasets include Raman Spectroscopy, X-ray Photoelectron Spectroscopy (XPS), Electrochemistry etc.
 Depends: R (>= 3.4.1)

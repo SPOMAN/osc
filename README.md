@@ -2,15 +2,17 @@
 
 This R package contains/will contain a set of useful tools for students and researchers at the [Organic Surface Chemistry](http://surfchem.dk) group at Aarhus University, Denmark. The package is under development, and probably will be for some time. Check the topics below to get an overview of what has been implemented so far. If you are missing features, then go ahead and create [an issue](https://github.com/SPOMAN/osc/issues).
 
-## Electrochemistry
+The functions should be properly documented, so try `?function_name` in the R console if you have questions about function parameters. More general introduction and usage examples will be made available in the [oscbook](https://spoman.github.io/oscbook/).
 
-### Cyclic Voltammetry
-* Cyclic Voltammograms and Electrolysis from the CHI can be loaded with `df <- electrochemistry_read("file.txt")`
-* CVs and Electrolysis' can be plotted by `plot(df)`
+## Goals for v0.1
+We are preparing the initial version of `osctools` for release. The intention is to have the following features implemented.
 
-## Raman Spectroscopy
-* Curve-fitted Raman maps from Wire can be loaded with `df <- raman_curvefit_read("path/to/folder/")`
-* A given feature from a curve-fitted map can be plotted with `plot(df, G-peak)`
-
-## X-Ray Photoelectron Spectroscopy
-Nothing so far
+Category  | Data  | Loading | Plotting
+---       | ---   | ---     | ---
+**Electrochemistry** | CV | |
+ | Electrolysis | |
+**Raman spectroscopy** | Spectra | |
+ | Spectra + curve fits | |
+ | Maps | |
+**XPS** | Spectra | |
+ | HR Spectra + deconvolutions | |
