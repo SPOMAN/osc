@@ -1,12 +1,22 @@
-library(osc)
+library(osctools)
 context("Loading functions")
 
-test_that("echem_read() returns the right columns", {
-  file <- system.file('extdata/cv/cv_example.txt', package = 'osc')
-  d <- echem_read(file)
+test_that("echem_read() returns the expected columns", {
+  # The echem_read() function should be able to read datafiles from
+  # different potentiostats with different settings. These tests evaluate
+  # that a set of example_files return the expected columns.
+  files <- c(
+    system.file('extdata/cv/cv_example.txt', package = 'osctools'),
+    system.file('extdata/cv/cv_example2.txt', package = 'osctools'),
+    system.file('extdata/cv/cv_example3.txt', package = 'osctools')
+  )
+
+  purrr::map(files, ~ expect_named(echem_read(.x), c('potential', 'current', 'direc', 'change', 'sweep', 'cv')))
+
+  d <- echem_read(system.file('extdata/cv/cv_example4.txt', package = 'osctools'), type = 'CV')
   expect_named(d, c('potential', 'current', 'direc', 'change', 'sweep', 'cv'))
 
-  file <- system.file('extdata/cv/Electrolysis.txt', package = 'osc')
+  file <- system.file('extdata/electrolysis/electrolysis_example.txt', package = 'osctools')
   d <- echem_read(file)
   expect_named(d, c('time', 'charge', 'current'))
 })

@@ -1,8 +1,8 @@
-library(osc)
+library(osctools)
 context("Area functions")
 
 test_that("area() returns the all data", {
-  file <- system.file('extdata/cv/cv_example.txt', package = 'osc')
+  file <- system.file('extdata/cv/cv_example.txt', package = 'osctools')
   d <- echem_read(file)
   d_new <- area(d, sw = 1, x1 = -1.85, x2 = -1.40)
 
@@ -12,7 +12,7 @@ test_that("area() returns the all data", {
 })
 
 test_that("area() truncates area data to span fitted region", {
-  file <- system.file('extdata/cv/cv_example.txt', package = 'osc')
+  file <- system.file('extdata/cv/cv_example.txt', package = 'osctools')
   d <- echem_read(file)
   d <- area(d, sw = 1, x1 = -1.85, x2 = -1.40, span = 0.05)
 

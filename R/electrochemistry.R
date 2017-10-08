@@ -1,48 +1,3 @@
-#' Load results of graphene curve fit
-#'
-#' Attempts to load all curve fits in txt files from the specified directory
-#'
-#' All files should be named as "<peak> <feature>.txt", e.g. "2D FWHM.txt" and be put in the folder specified under \code{path}.
-#' The dataframe that is returned will contain the "<peak> <feature>" as the column names - for this to work, the filenames should only contain letters, numbers and spaces.
-#'
-#' @importFrom magrittr %>%
-#' @param path Directory containing the data-files
-#' @param ext Extension of data-files (default is 'txt')
-#' @keywords raman, curve fit
-#' @family curve fit functions
-#' @export
-#' @examples
-#' raman_curvefit_read("data")
-#' raman_curvefit_read(system.file('extdata/graphene_curve_fit_export', package = 'osc'))
-
-
-raman_curvefit_read <- function(path, ext = "txt") {
-  filenames <- list.files(pattern = stringr::str_c('*.',ext), path = path)
-
-  data <- tibble::tibble(filename = filenames) %>%
-    dplyr::mutate(path = stringr::str_c(path, "/", filename),
-      data = purrr::map(path, readr::read_tsv, col_names = c("x", "y", "value"), skip = 1),
-      measure = stringr::str_extract(filenames, pattern = "[0-9a-zA-ZæøåÆØÅ\\s]*")) %>%
-    tidyr::unnest() %>%
-    dplyr::mutate(xy = stringr::str_c(x, ", ", y)) %>%
-    dplyr::select(xy, x, y, measure, value) %>%
-    tidyr::spread(key = measure, value = value) %>%
-    dplyr::mutate(id = 1:n()) %>%
-    dplyr::select(id, dplyr::everything(), -xy)
-
-  if (all(c('D int', 'G int') %in% colnames(data))) {
-    data <- data %>% dplyr::mutate(`D/G-ratio` = `D int` / `G int`)
-  }
-  if (all(c('2D int', 'G int') %in% colnames(data))) {
-    data <- data %>% dplyr::mutate(`2D/G-ratio` = `2D int` / `G int`)
-  }
-  if (all(c('Dp int', 'D int') %in% colnames(data))) {
-    data <- data %>% dplyr::mutate(`D/Dp-ratio` = `D int` / `Dp int`)
-  }
-  class(data) <- c("raman_curvefit", class(data))
-  data
-}
-
 #' Read electrochemistry data
 #'
 #' Reads *.txt files from the CHI potentiostats.
@@ -61,14 +16,14 @@ raman_curvefit_read <- function(path, ext = "txt") {
 #' plot(data)
 #'
 
-echem_read <- function(file) {
-  type <- get_exp_type(file)
-  if (type == "Bulk Electrolysis with Coulometry") {
+echem_read <- function(file, type = NA) {
+  if (is.na(type)) type <- get_exp_type(file)
+  if (is.na(type)) stop("Unknown experiment type. Please specify using the type parameter.")
+
+  if (type == "Electrolysis") {
     data <- electrolysis_read(file, skip = find_data(file))
-  } else if (type == "Cyclic Voltammetry") {
+  } else if (type == "CV") {
     data <- cv_read(file, skip = find_data(file))
-  } else {
-    return("Unknown experiment type")
   }
   return(data)
 }
@@ -93,7 +48,21 @@ echem_read <- function(file) {
 #' plot(df)
 
 cv_read <- function(file, skip, col_names = c("potential", "current")) {
-  data <- readr::read_csv(file, skip = skip, col_names = col_names) %>%
+  # data <- readr::read_csv(file, skip = skip, col_names = col_names)
+  #
+  # if (dim(readr::problems(data))[1] != 0) {
+  #   # Something when wrong while loading the data.
+  #   # This is probably due to 'Segment...' in the middle of the data.
+  #   data <- data %>%
+  #     dplyr::filter(!stringr::str_detect(potential, "^Segment")) %>%
+  #     dplyr::mutate_all(dplyr::funs(as.numeric(.)))
+  # }
+  data <- tibble::tibble(data = readr::read_lines(file, skip = skip)) %>%
+    tidyr::separate(data, into = col_names, sep = ",", fill = "left") %>%
+    dplyr::filter(stringr::str_detect(potential, "^-*[\\d]+")) %>%
+    dplyr::mutate_all(dplyr::funs(as.numeric(.)))
+
+  data <- data %>%
     dplyr::mutate(direc = ifelse(lead(potential)-potential > 0, "pos", "neg")) %>%
     dplyr::mutate(change = ifelse(direc != lag(direc), 1, 0)) %>%
     dplyr::mutate(change = ifelse(is.na(change), 0, change)) %>%
@@ -181,7 +150,14 @@ electrolysis_read <- function(file, skip, col_names = c('time', 'charge', 'curre
 #' @param file Path to data file from an electrochemical experiment
 
 get_exp_type <- function(file) {
-  readr::read_lines(file, n_max = 2)[2]
+  exp_type <- readr::read_lines(file, n_max = 3)
+
+  dplyr::case_when(
+    exp_type[2] == 'Cyclic Voltammetry' ~ 'CV',
+    exp_type[2] == 'Bulk Electrolysis with Coulometry' ~ 'Electrolysis',
+    exp_type[3] == 'file type: CV' ~ 'CV',
+    TRUE ~ NA_character_
+  )
 }
 
 #' Find the data startposition
@@ -193,12 +169,91 @@ get_exp_type <- function(file) {
 #' @param n_init Initial number of lines to load (the starting point varies from file to file)
 
 find_data <- function(file, n_init = 25) {
+
   if (n_init > R.utils::countLines(file)) stop("Start of data not found anywhere in the file.")
   data_header <- readr::read_lines(file, n_max = n_init) %>%
-    stringr::str_detect("(^Time)|(^Potential)") # Time is the first column of coloumetry-data, Potential is the first of CVs
+    stringr::str_detect("(^Time)|(^Potential)|(^[\\d]+)") # Time is the first column of coloumetry-data, Potential is the first of CVs
+
   if(!any(data_header)) {
     return(find_data(file, n_init = n_init * 2))
   } else {
-    return(which(data_header == TRUE))
+    return(which(data_header == TRUE)[1])
   }
+}
+
+#' Plot cyclic voltammograms
+#'
+#' Produces a CV-plot based on a dataframe from \code{\link{cv_read}}.
+#' If there is more than one CV in the file, each will be plotted in a different color.
+#'
+#' @importFrom magrittr %>%
+#' @param df A CV loaded with \code{cv_read()}
+#' @family cyclic voltammetry
+#' @export
+#' @examples
+#' file <- system.file('extdata/cv/5cv_example.txt', package = 'osc')
+#' df <- cv_read(file, skip = 70)
+#' plot(df)
+
+plot.cv <- function(df) {
+  if(length(unique(df$cv)) > 1) {
+    df %>%
+      ggplot2::ggplot(ggplot2::aes(x = potential, y = current, color = as.factor(cv))) +
+      ggplot2::geom_path() +
+      ggplot2::labs(x = "Potential (V)", y = "Current (A)")
+  } else {
+    df %>%
+      ggplot2::ggplot(ggplot2::aes(x = potential, y = current)) +
+      ggplot2::geom_path() +
+      ggplot2::labs(x = "Potential (V)", y = "Current (A)")
+
+  }
+}
+
+#' Plot electrolysis
+#'
+#' Produces an electrolysis based on a dataframe from \code{\link{electrolysis_read}}.
+#'
+#' @importFrom magrittr %>%
+#' @param df An electrolysis loaded with \code{electrolysis_read()}
+#' @family electrolysis, electrochemistry
+#' @export
+#'
+
+plot.electrolysis <- function(df) {
+  df %>%
+    ggplot2::ggplot(ggplot2::aes(x = time, y = current)) +
+    ggplot2::geom_line() +
+    ggplot2::labs(title = paste("Electrolysis at ", meta(df)$E, " V"), x = "Time (s)", y = "Current (A)")
+}
+
+
+#' Print function for electrolysis
+#' @export
+
+print.electrolysis <- function(x) {
+  cat(paste0("Electrolysis at ", meta(x)$E,
+    " V for ", meta(x)$d, " s (",
+    round(meta(x)$d / 3600, digits = 2),
+    " h)\n"))
+  electrons <- meta(x)$Q / constants::syms$e
+  mol <- electrons / constants::syms$Na
+  cat(meta(x)$Q, " C used (", prettyNum(electrons, digits = 3, format = "fg")," electrons \U2248 ", prettyNum(mol, digits = 3, format = "fg") ," mol)\n\n", sep = "")
+
+  print(tibble::as.tibble(unclass(x)), n = 5)
+  invisible(x)
+}
+
+
+#' Print function for CV
+#' @export
+
+print.cv <- function(x) {
+  cat("Cyclic Voltammetry at ", meta(x)$scanrate, " V/s\n", sep = "")
+  cat("Initial scan polarity: ", meta(x)$init_P, ", Scan segments: ", meta(x)$seg, "\n", sep = "")
+  cat("Init E: ", meta(x)$init_E, " V, High E: ", meta(x)$high_E, " V, Low E: ", meta(x)$low_E, " V\n", sep = "")
+  cat("Sensitivity: ", meta(x)$sens, ", Quiet time: ", meta(x)$quiet, " s\n\n", sep = "")
+
+  print(tibble::as.tibble(unclass(x)), n = 5)
+  invisible(x)
 }

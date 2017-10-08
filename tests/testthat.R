@@ -1,4 +1,4 @@
 library(testthat)
-library(osc)
+library(osctools)
 
-test_check("osc")
+test_check("osctools")
