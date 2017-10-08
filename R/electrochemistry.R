@@ -70,39 +70,15 @@ cv_read <- function(file, skip, col_names = c("potential", "current")) {
     dplyr::mutate(cv = ceiling(sweep/2))
 
   header <- readr::read_lines(file, n_max = skip-1)
-  scanrate <- header[stringr::str_detect(header, pattern = "^(Scan Rate)") == TRUE] %>%
-    stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
-    as.numeric()
-  init_E <- header[stringr::str_detect(header, pattern = "^(Init E)") == TRUE] %>%
-    stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
-    as.numeric()
-  high_E <- header[stringr::str_detect(header, pattern = "^(High E)") == TRUE] %>%
-    stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
-    as.numeric()
-  low_E <- header[stringr::str_detect(header, pattern = "^(Low E)") == TRUE] %>%
-    stringr::str_extract(pattern = "-?(\\d)*(.)?(\\d)*$") %>%
-    as.numeric()
-  init_P <- header[stringr::str_detect(header, pattern = "^(Init P/N)") == TRUE] %>%
-    stringr::str_extract(pattern = "(P|N)$")
-  seg <- header[stringr::str_detect(header, pattern = "^(Segment =)") == TRUE] %>%
-    stringr::str_extract(pattern = "(\\d)+$") %>%
-    as.integer()
-  sens <- header[stringr::str_detect(header, pattern = "^(Sensitivity)") == TRUE] %>%
-    stringr::str_extract(pattern = "(\\d)+e-?(\\d)+$") %>%
-    as.numeric()
-  quiet <- header[stringr::str_detect(header, pattern = "^(Quiet Time)") == TRUE] %>%
-    stringr::str_extract(pattern = "(\\d)+$") %>%
-    as.numeric()
-
   attr(data, "meta") <- list(
-    scanrate = scanrate,
-    init_E = init_E,
-    high_E = high_E,
-    low_E = low_E,
-    init_P = init_P,
-    seg = seg,
-    sens = sens,
-    quiet = quiet
+    scanrate = extract_metadata(header, "(Scan Rate)|(v)"),
+    init_E = extract_metadata(header, "(Init E)|(Estart)"),
+    high_E = extract_metadata(header, "(High E)|(Eend)"),
+    low_E = extract_metadata(header, "(Low E)|(Eswitch)"),
+    init_P = extract_metadata(header, "Init P", pattern = "(P|N)$", numeric = FALSE),
+    seg = extract_metadata(header, "Segment"),
+    sens = extract_metadata(header, "Sensitivity"),
+    quiet = extract_metadata(header, "Quiet Time")
   )
   class(data) <- append("cv", class(data))
   data
@@ -172,13 +148,31 @@ find_data <- function(file, n_init = 25) {
 
   if (n_init > R.utils::countLines(file)) stop("Start of data not found anywhere in the file.")
   data_header <- readr::read_lines(file, n_max = n_init) %>%
-    stringr::str_detect("(^Time)|(^Potential)|(^[\\d]+)") # Time is the first column of coloumetry-data, Potential is the first of CVs
+    stringr::str_detect("-?^[\\d]+") # The first line of the data is always the first line to start with a digit
 
   if(!any(data_header)) {
     return(find_data(file, n_init = n_init * 2))
   } else {
-    return(which(data_header == TRUE)[1])
+    return(which(data_header == TRUE)[1] - 1)
   }
+}
+
+#' Extract metadata from the header of a datafile
+#'
+#' @param header A vector of header lines in a datafile
+#' @param start A string with the beginning of the line of interest
+#' @param pattern Regular expression detailing how to extract the value. The default will attempt to match any number.
+#' @param numeric Should the function return a numeric (TRUE) or character (FALSE)
+#'
+extract_metadata <- function(header, start, pattern = "[-+]?\\d+\\.?\\d*e?-?\\d*", numeric = TRUE) {
+  start <- paste0("^(", start, ")")
+
+  metadata <- header[stringr::str_detect(header, pattern = start) == TRUE] %>%
+    stringr::str_extract(pattern = pattern)
+
+  if (numeric) metadata <- metadata %>% as.numeric()
+
+  metadata
 }
 
 #' Plot cyclic voltammograms
