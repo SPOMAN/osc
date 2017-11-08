@@ -148,7 +148,7 @@ find_data <- function(file, n_init = 25) {
 
   if (n_init > R.utils::countLines(file)) stop("Start of data not found anywhere in the file.")
   data_header <- readr::read_lines(file, n_max = n_init) %>%
-    stringr::str_detect("-?^[\\d]+") # The first line of the data is always the first line to start with a digit
+    stringr::str_detect("^-?[\\d]+") # The first line of the data is always the first line to start with a digit
 
   if(!any(data_header)) {
     return(find_data(file, n_init = n_init * 2))
