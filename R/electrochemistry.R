@@ -76,7 +76,7 @@ cv_read <- function(file, skip, col_names = c("potential", "current")) {
     high_E = extract_metadata(header, "(High E)|(Eend)"),
     low_E = extract_metadata(header, "(Low E)|(Eswitch)"),
     init_P = extract_metadata(header, "Init P", pattern = "(P|N)$", numeric = FALSE),
-    seg = extract_metadata(header, "Segment"),
+    seg = extract_metadata(header, "Segment\\s="),
     sens = extract_metadata(header, "Sensitivity"),
     quiet = extract_metadata(header, "Quiet Time")
   )
