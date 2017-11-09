@@ -47,7 +47,10 @@ ui <- miniUI::miniPage(
     })
 
     shiny::observeEvent(input$done, {
-      shiny::stopApp(returnValue = invisible(v$selectedData))
+      return_data <- dplyr::left_join(df, dplyr::mutate(v$selectedData, peak = TRUE))
+
+
+      shiny::stopApp(returnValue = invisible(return_data))
     })
   }
   shiny::runGadget(ui, server)
