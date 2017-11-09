@@ -86,6 +86,7 @@ plot_area <- function(df) {
 area_picker <- function(df) {
   requireNamespace("shiny", quietly = TRUE)
   requireNamespace("miniUI", quietly = TRUE)
+  input_name <- deparse(substitute(df))
 
   ui <- miniUI::miniPage(
     miniUI::gadgetTitleBar("Select integration limits by dragging sliders below"),
@@ -115,7 +116,7 @@ area_picker <- function(df) {
       cat(paste0("\nArea of ", prettyNum(area_params$Q, digits = 3, format = "fg"), " C found between ", area_params$x1 , " V and ", area_params$x2 , " V.\n"))
       cat("The area() function below has been copied to the clipboard!\n")
       cat("Please paste it in your script for reproducibility.\n")
-      res_string = paste0("df <- area(df, sw = ", input$sweep, ", x1 = ", input$x1[1], ", x2 = ", input$x1[2], ", p = ", input$poly, ", span = ", input$span, ")")
+      res_string = paste0(input_name, " <- area(",input_name,", sw = ", input$sweep, ", x1 = ", input$x1[1], ", x2 = ", input$x1[2], ", p = ", input$poly, ", span = ", input$span, ")")
       cat(paste0("    ", res_string, "\n"))
       clipr::write_clip(res_string, return_new = FALSE)
       shiny::stopApp(returnValue = invisible(a))
