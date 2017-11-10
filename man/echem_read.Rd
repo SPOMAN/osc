@@ -4,7 +4,7 @@
 \alias{echem_read}
 \title{Read electrochemistry data}
 \usage{
-echem_read(file)
+echem_read(file, type = NA)
 }
 \arguments{
 \item{file}{Path to the *.txt file from the CHI potentiostat}
