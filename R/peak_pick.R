@@ -55,7 +55,11 @@ ui <- miniUI::miniPage(
         if (find_nearest) {
           # Find nearest peak
           peak_ind <- find_peak(data$x, data$y, which(data$x == X1$x))
-          X1 <- data[peak_ind,]
+          if (!is.na(peak_ind)) {
+            X1 <- data[peak_ind,]
+          } else {
+            X1 <- X1[0,]
+          }
         }
 
         X_bind <- rbind(v$selectedData, X1)
@@ -146,6 +150,7 @@ add_peaks <- function(df, indices) {
 #'
 find_peak <- function(x, y, ind) {
   grad <- find_gradient(x, y, ind)
+  if (is.na(grad)) return(NA)
   if (grad > 0) move <- 1 else move <- -1
 
   if (y[ind + move] > y[ind]) {
@@ -165,6 +170,11 @@ find_peak <- function(x, y, ind) {
 #' @return numeric
 #'
 find_gradient <- function(x, y, ind) {
+  if (ind == 1 | ind == length(x)) {
+    warning("Index out of bounds")
+    return(NA)
+  }
+
   (y[ind + 1] - y[ind - 1]) / (x[ind + 1] - x[ind - 1])
 }
 
