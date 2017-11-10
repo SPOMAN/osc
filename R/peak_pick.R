@@ -48,7 +48,7 @@ ui <- miniUI::miniPage(
     )
 
     shiny::observeEvent(input$plot1_click, {
-      X1 <- shiny::nearPoints(data, input$plot1_click, maxpoints = 1, threshold = 10)
+      X1 <- shiny::nearPoints(data, input$plot1_click, maxpoints = 1, threshold = 25)
 
       if (nrow(X1) > 0 ) {
 
@@ -133,7 +133,7 @@ generic_df <- function(df, x, y) {
 #' tibble(x1 = seq(0.1, 9, 0.01), y1 = sin(x1)) %>%
 #'   add_peaks(c(148,776))
 add_peaks <- function(df, indices) {
-  return_data <- df %>% mutate(peak = FALSE)
+  return_data <- df %>% dplyr::mutate(peak = FALSE)
   return_data$peak[indices] <- TRUE
   return_data
 }
@@ -198,12 +198,12 @@ plot_peaks <- function(df, x, y) {
   x <- rlang::enquo(x)
   y <- rlang::enquo(y)
 
-  data <- generic_df(df, !!x, !!y) %>% mutate(peak = df$peak)
+  data <- generic_df(df, !!x, !!y) %>% dplyr::mutate(peak = df$peak)
 
   nudge_dist <- (max(data$x) - min(data$x)) / 100
   data %>%
-    ggplot(aes(x, y)) +
-    geom_line() +
-    geom_text(data = . %>% filter(peak), aes(x, y, label = round(x, digits = 1)), size = 3, nudge_y = nudge_dist * 9, color = "red") +
-    geom_segment(data = . %>% filter(peak), aes(x = x, xend = x, y = y + nudge_dist*2, yend = y + nudge_dist*5), color = "red")
+    ggplot2::ggplot(ggplot2::aes(x, y)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_text(data = . %>% dplyr::filter(peak), ggplot2::aes(x, y, label = round(x, digits = 1)), size = 3, nudge_y = nudge_dist * 9, color = "red") +
+    ggplot2::geom_segment(data = . %>% dplyr::filter(peak), ggplot2::aes(x = x, xend = x, y = y + nudge_dist*2, yend = y + nudge_dist*5), color = "red")
 }
