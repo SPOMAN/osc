@@ -10,6 +10,7 @@
 peak_picker <- function(df, x, y, find_nearest = TRUE) {
   requireNamespace("shiny", quietly = TRUE)
   requireNamespace("miniUI", quietly = TRUE)
+  input_name <- deparse(substitute(df))
 
   x <- rlang::enquo(x)
   y <- rlang::enquo(y)
@@ -21,8 +22,8 @@ ui <- miniUI::miniPage(
     miniUI::gadgetTitleBar("Select peaks by clicking on the figure below"),
     miniUI::miniContentPanel(
       shiny::plotOutput("plot1", height = "100%", click = "plot1_click")
-    ),
-    miniUI::miniContentPanel(shiny::verbatimTextOutput('list'))
+    )#,
+    #miniUI::miniContentPanel(shiny::verbatimTextOutput('list'))
   )
 
   server <- function(input, output, session) {
@@ -44,7 +45,7 @@ ui <- miniUI::miniPage(
         X_bind <- rbind(v$selectedData, X1)
 
         if (nrow(X_bind) == nrow(dplyr::distinct(X_bind))) {
-          v$selectedData <- rbind(v$selectedData, X1)
+          v$selectedData <- rbind(v$selectedData, X1) %>% dplyr::arrange(x)
         } else {
           v$selectedData <- dplyr::anti_join(v$selectedData, X1, by = c("x", "y"))
         }
@@ -55,14 +56,21 @@ ui <- miniUI::miniPage(
       v$selectedData
     })
     output$plot1 <- shiny::renderPlot({
-      ggplot2::ggplot(data, ggplot2::aes(x, y)) + ggplot2::geom_line() + ggplot2::geom_point(data = v$selectedData, ggplot2::aes(x, y), color = "red", size = 2)
+      peak_indices <- match(v$selectedData$x, data$x)
+      data %>% add_peaks(peak_indices) %>% plot_peaks(x, y)
     })
 
     shiny::observeEvent(input$done, {
-      peaks <- dplyr::left_join(data, dplyr::mutate(v$selectedData, peak = TRUE), by = c("x", "y")) %>% pull(peak)
-      peaks <- ifelse(!is.na(peaks), TRUE, FALSE)
-      return_data <- df %>% mutate(peak = peaks)
+      peak_indices <- match(v$selectedData$x, data$x)
+      return_data <- df %>% add_peaks(peak_indices)
 
+      cat(paste0(length(peak_indices)," found in the dataset\n"))
+      cat("The add_peaks() function below has been copied to the clipboard!\n")
+      cat("Please paste it in your script for reproducibility.\n")
+      peak_vec <- paste(peak_indices, collapse = ",")
+      res_string = paste0(input_name, ' <- ', input_name,' %>% add_peaks(c(', peak_vec ,'))')
+      cat(paste0("    ", res_string, "\n"))
+      clipr::write_clip(res_string, return_new = FALSE)
 
       shiny::stopApp(returnValue = invisible(return_data))
     })
@@ -86,6 +94,21 @@ generic_df <- function(df, x, y) {
   tibble::tibble(x = dplyr::pull(df, !!x), y = dplyr::pull(df, !!y))
 }
 
+
+#' Add peak indicators at the given indices
+#'
+#' @param df
+#' @param indices
+#'
+#' @return
+#' @export
+#'
+#' @examples
+add_peaks <- function(df, indices) {
+  return_data <- df %>% mutate(peak = FALSE)
+  return_data$peak[indices] <- TRUE
+  return_data
+}
 
 #' Returns the index of the nearest peak
 #'
@@ -121,3 +144,28 @@ find_gradient <- function(x, y, ind) {
   (y[ind + 1] - y[ind - 1]) / (x[ind + 1] - x[ind - 1])
 }
 
+#' Title
+#'
+#' @param df
+#' @param x
+#' @param y
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_peaks <- function(df, x, y) {
+  if (!("peak" %in% colnames(df))) stop("Column peaks not found")
+
+  x <- rlang::enquo(x)
+  y <- rlang::enquo(y)
+
+  data <- generic_df(df, !!x, !!y) %>% mutate(peak = df$peak)
+
+  nudge_dist <- (max(data$x) - min(data$x)) / 100
+  data %>%
+    ggplot(aes(x, y)) +
+    geom_line() +
+    geom_text(data = . %>% filter(peak), aes(x, y, label = round(x)), size = 3, nudge_y = nudge_dist * 9, color = "red") +
+    geom_segment(data = . %>% filter(peak), aes(x = x, xend = x, y = y + nudge_dist*2, yend = y + nudge_dist*5), color = "red")
+}
